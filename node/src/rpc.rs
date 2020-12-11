@@ -7,12 +7,16 @@
 
 use std::sync::Arc;
 
-use node_template_runtime::{opaque::Block, AccountId, Balance, Index};
+use node_template_runtime::{opaque::Block, AccountId, Balance, Index, TransactionConverter};
 use sp_api::ProvideRuntimeApi;
 use sp_blockchain::{Error as BlockChainError, HeaderMetadata, HeaderBackend};
 use sp_block_builder::BlockBuilder;
 pub use sc_rpc_api::DenyUnsafe;
 use sp_transaction_pool::TransactionPool;
+use sc_client_api::{
+    backend::{StorageProvider, Backend, StateBackend, AuxStore},
+};
+use sp_runtime::traits::BlakeTwo256;
 
 
 /// Full client dependencies.
@@ -23,6 +27,7 @@ pub struct FullDeps<C, P> {
 	pub pool: Arc<P>,
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
+	pub is_authority: bool,
 }
 
 /// Instantiate all full RPC extensions.
@@ -45,6 +50,7 @@ pub fn create_full<C, P>(
 		client,
 		pool,
 		deny_unsafe,
+		is_authority,
 	} = deps;
 
 	io.extend_with(
